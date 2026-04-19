@@ -132,6 +132,7 @@
             </button>
           </div>
         </form>
+        <div id="voucherMessage" class="mt-3 text-sm"></div>
       </div>
 
       <!-- Recent Vouchers List -->
@@ -180,7 +181,7 @@
               id="voucherTableBody"
               class="bg-white divide-y divide-gray-200"
             >
-              <!-- Rows populated dynamically -->
+              <!-- Populated dynamically -->
             </tbody>
           </table>
         </div>
@@ -202,9 +203,7 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <div id="detailContent" class="space-y-3">
-          <!-- Filled dynamically -->
-        </div>
+        <div id="detailContent" class="space-y-3"></div>
         <div class="mt-6 flex justify-end">
           <button
             id="closeDetailBtn"
@@ -232,6 +231,7 @@
         limit,
         doc,
         getDoc,
+        getDocs,
       } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
       const userRole = window.parent.currentUser?.role || "employee";
@@ -252,8 +252,28 @@
       const closeDetailModalBtn = document.getElementById(
         "closeDetailModalBtn",
       );
+      const msgDiv = document.getElementById("voucherMessage");
 
-      // Voucher configurations
+      // Store accounts for dropdowns
+      let accountsList = [];
+
+      // Fetch Chart of Accounts
+      async function loadAccounts() {
+        try {
+          const snapshot = await getDocs(collection(db, "chartOfAccounts"));
+          accountsList = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          renderFields("CR"); // Re-render with accounts
+        } catch (error) {
+          console.error("Error loading accounts:", error);
+          accountsList = [];
+          renderFields("CR");
+        }
+      }
+
+      // Voucher configurations with dropdowns populated from accounts
       const voucherConfig = {
         CR: {
           title: "Cash Receipt",
@@ -262,12 +282,15 @@
               name: "debitAccount",
               label: "Debit Account (Cash/Bank)",
               type: "select",
-              options: ["Cash in Hand", "Bank Account"],
+              filter: (acc) =>
+                acc.type === "Asset" &&
+                (acc.name.includes("Cash") || acc.name.includes("Bank")),
             },
             {
               name: "creditAccount",
               label: "Credit Account (Income/Customer)",
-              type: "text",
+              type: "select",
+              filter: (acc) => acc.type === "Revenue" || acc.type === "Asset",
             },
           ],
         },
@@ -277,13 +300,16 @@
             {
               name: "debitAccount",
               label: "Debit Account (Expense/Supplier)",
-              type: "text",
+              type: "select",
+              filter: (acc) =>
+                acc.type === "Expense" || acc.type === "Liability",
             },
             {
               name: "creditAccount",
               label: "Credit Account (Cash)",
               type: "select",
-              options: ["Cash in Hand"],
+              filter: (acc) =>
+                acc.type === "Asset" && acc.name.includes("Cash"),
             },
           ],
         },
@@ -294,12 +320,14 @@
               name: "debitAccount",
               label: "Debit Account (Bank)",
               type: "select",
-              options: ["Bank Account"],
+              filter: (acc) =>
+                acc.type === "Asset" && acc.name.includes("Bank"),
             },
             {
               name: "creditAccount",
               label: "Credit Account (Income/Customer)",
-              type: "text",
+              type: "select",
+              filter: (acc) => acc.type === "Revenue" || acc.type === "Asset",
             },
           ],
         },
@@ -309,26 +337,38 @@
             {
               name: "debitAccount",
               label: "Debit Account (Expense/Supplier)",
-              type: "text",
+              type: "select",
+              filter: (acc) =>
+                acc.type === "Expense" || acc.type === "Liability",
             },
             {
               name: "creditAccount",
               label: "Credit Account (Bank)",
               type: "select",
-              options: ["Bank Account"],
+              filter: (acc) =>
+                acc.type === "Asset" && acc.name.includes("Bank"),
             },
           ],
         },
         JV: {
           title: "Journal Voucher",
           fields: [
-            { name: "debitAccount", label: "Debit Account", type: "text" },
-            { name: "creditAccount", label: "Credit Account", type: "text" },
+            {
+              name: "debitAccount",
+              label: "Debit Account",
+              type: "select",
+              filter: () => true,
+            },
+            {
+              name: "creditAccount",
+              label: "Credit Account",
+              type: "select",
+              filter: () => true,
+            },
           ],
         },
       };
 
-      // Render fields based on voucher type
       function renderFields(type) {
         const config = voucherConfig[type];
         formTitle.textContent = `New ${config.title}`;
@@ -336,8 +376,15 @@
         let html = "";
         config.fields.forEach((field) => {
           if (field.type === "select") {
+            const filtered = accountsList.filter(field.filter || (() => true));
             html += `<div><label class="block text-sm font-medium text-gray-700 mb-1">${field.label}</label><select id="${field.name}" class="w-full px-3 py-2 border rounded-lg">`;
-            field.options.forEach((opt) => (html += `<option>${opt}</option>`));
+            if (filtered.length === 0) {
+              html += `<option value="">No accounts found</option>`;
+            } else {
+              filtered.forEach((acc) => {
+                html += `<option value="${acc.name}">${acc.code} - ${acc.name}</option>`;
+              });
+            }
             html += `</select></div>`;
           } else {
             html += `<div><label class="block text-sm font-medium text-gray-700 mb-1">${field.label}</label><input type="text" id="${field.name}" class="w-full px-3 py-2 border rounded-lg"></div>`;
@@ -361,20 +408,22 @@
         });
       });
 
-      renderFields("CR"); // Initial
+      // Initial load
+      await loadAccounts();
 
       // Clear form
       clearBtn.addEventListener("click", () => {
         voucherId.value = "";
         form.reset();
         renderFields(voucherTypeInput.value);
+        msgDiv.innerHTML = "";
       });
 
       // Save voucher
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!isAdmin) {
-          alert("Only admin can create vouchers");
+          msgDiv.innerHTML = `<span class="text-red-600">❌ Only admin can create vouchers.</span>`;
           return;
         }
 
@@ -393,16 +442,19 @@
         try {
           if (voucherId.value) {
             await updateVoucher(voucherId.value, voucherData);
+            msgDiv.innerHTML = `<span class="text-green-600">✅ Voucher updated successfully!</span>`;
           } else {
             await saveVoucher(voucherData);
+            msgDiv.innerHTML = `<span class="text-green-600">✅ Voucher saved successfully!</span>`;
           }
           clearBtn.click();
         } catch (error) {
-          alert("Error saving voucher: " + error.message);
+          console.error("Save error:", error);
+          msgDiv.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
         }
       });
 
-      // Close modals
+      // Modal controls
       function closeDetailModal() {
         detailModal.classList.add("hidden");
       }
@@ -412,7 +464,6 @@
         if (e.target === detailModal) closeDetailModal();
       });
 
-      // Show voucher details
       async function showVoucherDetails(voucherId) {
         try {
           const v = await getVoucher(voucherId);
@@ -433,7 +484,6 @@
                     <p><span class="font-medium">Debit Account:</span> ${v.debitAccount || "-"}</p>
                     <p><span class="font-medium">Credit Account:</span> ${v.creditAccount || "-"}</p>
                     <p><span class="font-medium">Narration:</span> ${v.narration || "-"}</p>
-                    <p><span class="font-medium">Created:</span> ${new Date(v.createdAt).toLocaleString()}</p>
                 `;
           detailModal.classList.remove("hidden");
         } catch (error) {
@@ -441,7 +491,7 @@
         }
       }
 
-      // Real-time listener for vouchers
+      // Real-time vouchers list
       const vouchersQuery = query(
         collection(db, "vouchers"),
         orderBy("createdAt", "desc"),
@@ -451,7 +501,6 @@
         tbody.innerHTML = "";
         document.getElementById("listCount").textContent =
           `Showing ${snapshot.size} recent vouchers`;
-
         snapshot.forEach((docSnap) => {
           const v = docSnap.data();
           const row = document.createElement("tr");
@@ -478,15 +527,12 @@
           tbody.appendChild(row);
         });
 
-        // Attach click listeners for voucher codes
         document.querySelectorAll(".clickable-code").forEach((el) => {
-          el.addEventListener("click", (e) => {
-            const id = e.target.closest("[data-id]").dataset.id;
-            showVoucherDetails(id);
-          });
+          el.addEventListener("click", (e) =>
+            showVoucherDetails(e.target.closest("[data-id]").dataset.id),
+          );
         });
 
-        // Attach edit/delete if admin
         if (isAdmin) {
           document.querySelectorAll(".edit-voucher").forEach((btn) => {
             btn.addEventListener("click", () => editVoucher(btn.dataset.id));
@@ -503,22 +549,21 @@
         const v = await getVoucher(id);
         if (!v) return;
         voucherId.value = id;
-        // Switch to correct tab
         const type = v.voucherType;
         tabs.forEach((tab) => {
-          if (tab.dataset.type === type) {
-            tab.click();
-          }
+          if (tab.dataset.type === type) tab.click();
         });
-        // Populate fields
         document.getElementById("voucherDate").value = v.date;
         document.getElementById("amount").value = v.amount;
         document.getElementById("narration").value = v.narration || "";
-        const config = voucherConfig[type];
-        config.fields.forEach((field) => {
-          const el = document.getElementById(field.name);
-          if (el) el.value = v[field.name] || "";
-        });
+        // Wait for fields to render then populate
+        setTimeout(() => {
+          const config = voucherConfig[type];
+          config.fields.forEach((field) => {
+            const el = document.getElementById(field.name);
+            if (el) el.value = v[field.name] || "";
+          });
+        }, 100);
       }
 
       async function deleteVoucherHandler(id) {
