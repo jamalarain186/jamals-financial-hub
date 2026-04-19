@@ -389,5 +389,103 @@
     <!-- Scripts -->
     <script type="module" src="js/firebase-config.js"></script>
     <script type="module" src="js/app.js"></script>
+    <script type="module">
+      import { db } from "./js/firebase-config.js";
+      import {
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // Auto-backup settings
+      let autoBackupEnabled = false;
+      let backupInterval = null;
+
+      // Create backup toggle UI in header
+      function addBackupToggle() {
+        const headerRight = document.querySelector(
+          "header .flex.items-center.gap-4",
+        );
+        if (!headerRight) return;
+
+        const toggleDiv = document.createElement("div");
+        toggleDiv.className = "flex items-center gap-2";
+        toggleDiv.innerHTML = `
+            <span class="text-sm text-gray-600">📤 Auto Backup</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="autoBackupToggle" class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+        `;
+        headerRight.insertBefore(toggleDiv, headerRight.firstChild);
+
+        document
+          .getElementById("autoBackupToggle")
+          .addEventListener("change", (e) => {
+            autoBackupEnabled = e.target.checked;
+            if (autoBackupEnabled) {
+              startAutoBackup();
+            } else {
+              stopAutoBackup();
+            }
+          });
+      }
+
+      async function exportAllData() {
+        try {
+          const collections = ["employees", "vouchers", "chartOfAccounts"];
+          const backup = {};
+
+          for (const collName of collections) {
+            const snapshot = await getDocs(collection(db, collName));
+            backup[collName] = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+          }
+
+          // Create downloadable file
+          const timestamp = new Date()
+            .toISOString()
+            .replace(/[:.]/g, "-")
+            .slice(0, 19);
+          const filename = `JamalBackup_${timestamp}.json`;
+          const jsonStr = JSON.stringify(backup, null, 2);
+          const blob = new Blob([jsonStr], { type: "application/json" });
+
+          // Trigger download
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          console.log(`✅ Auto-backup saved: ${filename}`);
+        } catch (error) {
+          console.error("Auto-backup failed:", error);
+        }
+      }
+
+      function startAutoBackup() {
+        exportAllData(); // immediate first backup
+        backupInterval = setInterval(exportAllData, 30 * 60 * 1000); // 30 minutes
+        console.log("🔄 Auto-backup started (every 30 min)");
+      }
+
+      function stopAutoBackup() {
+        if (backupInterval) {
+          clearInterval(backupInterval);
+          backupInterval = null;
+          console.log("⏹️ Auto-backup stopped");
+        }
+      }
+
+      // Add the toggle after login
+      window.addEventListener("load", () => {
+        setTimeout(addBackupToggle, 1000); // wait for header to render
+      });
+    </script>
   </body>
 </html>
