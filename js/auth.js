@@ -50,28 +50,40 @@ export async function logoutUser() {
     }
 }
 
-// Admin: Create new user without logging out the admin
+// Admin: Create new user without logging out admin
 export async function createUserByAdmin(email, password, role, name) {
+    let secondaryApp;
     try {
         // Get the current Firebase app config
         const app = auth.app;
-        const config = app.options;
+        const config = {
+            apiKey: app.options.apiKey,
+            authDomain: app.options.authDomain,
+            projectId: app.options.projectId,
+            storageBucket: app.options.storageBucket,
+            messagingSenderId: app.options.messagingSenderId,
+            appId: app.options.appId
+        };
         
-        // Create a secondary app instance with same config
-        const secondaryApp = initializeApp(config, 'Secondary');
+        // Create a secondary app instance with a unique name
+        const secondaryAppName = 'Secondary_' + Date.now();
+        secondaryApp = initializeApp(config, secondaryAppName);
         const secondaryAuth = getSecondaryAuth(secondaryApp);
         
         // Create user with secondary auth (doesn't affect main session)
         const userCredential = await secondaryCreateUser(secondaryAuth, email, password);
         const user = userCredential.user;
         
-        // Store user details in Firestore
-        await setDoc(doc(db, 'users', user.uid), {
+        // Store user details in Firestore (using primary db)
+        const userDocRef = doc(db, 'users', user.uid);
+        await setDoc(userDocRef, {
             email: email,
             role: role,
             name: name,
             createdAt: new Date().toISOString()
         });
+        
+        console.log('✅ User document created in Firestore for', email);
         
         // Delete the secondary app to clean up
         await secondaryApp.delete();
@@ -79,6 +91,12 @@ export async function createUserByAdmin(email, password, role, name) {
         return { success: true, user };
     } catch (error) {
         console.error('Admin user creation error:', error);
+        // Attempt to clean up secondary app if it exists
+        if (secondaryApp) {
+            try { await secondaryApp.delete(); } catch (e) {}
+        }
         throw error;
     }
 }
+        
+  
