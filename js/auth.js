@@ -53,6 +53,7 @@ export async function logoutUser() {
 // Admin: Create new user without logging out admin
 export async function createUserByAdmin(email, password, role, name) {
     let secondaryApp;
+    let secondaryAuth;
     try {
         // Get the current Firebase app config
         const app = auth.app;
@@ -65,18 +66,21 @@ export async function createUserByAdmin(email, password, role, name) {
             appId: app.options.appId
         };
         
-        // Create a secondary app instance with a unique name
+        // Create a secondary app instance
         const secondaryAppName = 'Secondary_' + Date.now();
         secondaryApp = initializeApp(config, secondaryAppName);
-        const secondaryAuth = getSecondaryAuth(secondaryApp);
+        secondaryAuth = getSecondaryAuth(secondaryApp);
         
-        // Create user with secondary auth (doesn't affect main session)
+        // Create the user with the secondary auth
         const userCredential = await secondaryCreateUser(secondaryAuth, email, password);
         const user = userCredential.user;
         
-        // Store user details in Firestore (using primary db)
-        const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, {
+        // Sign out from the secondary app (important)
+        await secondaryAuth.signOut();
+        
+        // Now use the PRIMARY db (admin's session) to write the user document
+        // This will succeed because the primary auth is still the admin
+        await setDoc(doc(db, 'users', user.uid), {
             email: email,
             role: role,
             name: name,
@@ -91,12 +95,10 @@ export async function createUserByAdmin(email, password, role, name) {
         return { success: true, user };
     } catch (error) {
         console.error('Admin user creation error:', error);
-        // Attempt to clean up secondary app if it exists
+        // Attempt to clean up
         if (secondaryApp) {
             try { await secondaryApp.delete(); } catch (e) {}
         }
         throw error;
     }
 }
-        
-  
