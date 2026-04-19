@@ -1,0 +1,40 @@
+/* Custom styles beyond Tailwind */
+
+/* Active navigation link */
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 500;
+}
+
+/* Smooth transitions */
+.transition {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom scrollbar for sidebar */
+aside nav::-webkit-scrollbar {
+  width: 6px;
+}
+aside nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+aside nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+aside nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

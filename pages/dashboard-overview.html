@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body class="p-6 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        📊 Dashboard Overview
+      </h2>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Employees -->
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+              <i class="fas fa-users text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Total Employees</p>
+              <p id="totalEmployees" class="text-3xl font-bold text-gray-800">
+                0
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Payroll -->
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 text-green-600">
+              <i class="fas fa-money-bill-wave text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Pending Payroll</p>
+              <p id="pendingPayroll" class="text-3xl font-bold text-gray-800">
+                0
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outstanding Invoices -->
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+              <i class="fas fa-file-invoice text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">
+                Outstanding Invoices
+              </p>
+              <p
+                id="outstandingInvoices"
+                class="text-3xl font-bold text-gray-800"
+              >
+                ₹0
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank Balance -->
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+              <i class="fas fa-university text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Bank Balance</p>
+              <p id="bankBalance" class="text-3xl font-bold text-gray-800">
+                ₹0
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Vouchers -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b">
+            <h3 class="font-semibold text-gray-800">Recent Vouchers</h3>
+          </div>
+          <div class="p-4">
+            <div id="recentVouchersList" class="space-y-2">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Employees -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b">
+            <h3 class="font-semibold text-gray-800">
+              Recently Added Employees
+            </h3>
+          </div>
+          <div class="p-4">
+            <div id="recentEmployeesList" class="space-y-2">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { db } from "../js/firebase-config.js";
+      import {
+        collection,
+        getDocs,
+        query,
+        orderBy,
+        limit,
+        where,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const totalEmployeesEl = document.getElementById("totalEmployees");
+      const pendingPayrollEl = document.getElementById("pendingPayroll");
+      const outstandingInvoicesEl = document.getElementById(
+        "outstandingInvoices",
+      );
+      const bankBalanceEl = document.getElementById("bankBalance");
+      const recentVouchersDiv = document.getElementById("recentVouchersList");
+      const recentEmployeesDiv = document.getElementById("recentEmployeesList");
+
+      async function loadDashboardStats() {
+        try {
+          // 1. Total Employees
+          const empSnapshot = await getDocs(collection(db, "employees"));
+          totalEmployeesEl.textContent = empSnapshot.size;
+
+          // 2. Pending Payroll (for current month? For now count all payrolls not marked paid)
+          // We'll assume a 'payrolls' collection exists later; for now placeholder
+          // For simplicity, count employees without salary paid this month? Hardcode for now
+          pendingPayrollEl.textContent = "0"; // We'll implement properly in payroll module
+
+          // 3. Outstanding Invoices (placeholder - to be implemented)
+          outstandingInvoicesEl.textContent = "₹0";
+
+          // 4. Bank Balance - calculate from Chart of Accounts "Bank Account" and vouchers?
+          // For now, compute net from vouchers: sum of BR - BP
+          const voucherSnapshot = await getDocs(collection(db, "vouchers"));
+          let bankBalance = 0;
+          voucherSnapshot.forEach((doc) => {
+            const v = doc.data();
+            if (v.voucherType === "BR") bankBalance += v.amount;
+            if (v.voucherType === "BP") bankBalance -= v.amount;
+          });
+          bankBalanceEl.textContent = `₹${bankBalance.toLocaleString()}`;
+
+          // 5. Recent Vouchers (last 5)
+          const recentVouchersQuery = query(
+            collection(db, "vouchers"),
+            orderBy("createdAt", "desc"),
+            limit(5),
+          );
+          const recentVouchersSnapshot = await getDocs(recentVouchersQuery);
+          recentVouchersDiv.innerHTML = "";
+          if (recentVouchersSnapshot.empty) {
+            recentVouchersDiv.innerHTML =
+              '<p class="text-gray-500 text-sm">No recent vouchers</p>';
+          } else {
+            recentVouchersSnapshot.forEach((doc) => {
+              const v = doc.data();
+              const item = document.createElement("div");
+              item.className =
+                "flex justify-between items-center py-2 border-b border-gray-100 last:border-0";
+              item.innerHTML = `
+                            <div>
+                                <span class="font-medium text-indigo-600">${v.voucherCode}</span>
+                                <span class="text-sm text-gray-500 ml-2">${v.date}</span>
+                            </div>
+                            <span class="font-medium">₹${v.amount.toLocaleString()}</span>
+                        `;
+              recentVouchersDiv.appendChild(item);
+            });
+          }
+
+          // 6. Recent Employees (last 5)
+          const recentEmpQuery = query(
+            collection(db, "employees"),
+            orderBy("createdAt", "desc"),
+            limit(5),
+          );
+          const recentEmpSnapshot = await getDocs(recentEmpQuery);
+          recentEmployeesDiv.innerHTML = "";
+          if (recentEmpSnapshot.empty) {
+            recentEmployeesDiv.innerHTML =
+              '<p class="text-gray-500 text-sm">No employees yet</p>';
+          } else {
+            recentEmpSnapshot.forEach((doc) => {
+              const e = doc.data();
+              const item = document.createElement("div");
+              item.className =
+                "flex justify-between items-center py-2 border-b border-gray-100 last:border-0";
+              item.innerHTML = `
+                            <div>
+                                <span class="font-medium">${e.name}</span>
+                                <span class="text-sm text-gray-500 ml-2">${e.position || ""}</span>
+                            </div>
+                            <span class="text-sm text-gray-600">₹${(e.salary || 0).toLocaleString()}</span>
+                        `;
+              recentEmployeesDiv.appendChild(item);
+            });
+          }
+        } catch (error) {
+          console.error("Dashboard stats error:", error);
+        }
+      }
+
+      loadDashboardStats();
+    </script>
+  </body>
+</html>

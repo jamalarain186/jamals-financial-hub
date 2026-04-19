@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Jamal's Financial Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons (optional but nice) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar (Mobile and Desktop) -->
+      <aside
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-indigo-900 to-purple-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:h-full -translate-x-full"
+      >
+        <!-- Sidebar Header -->
+        <div
+          class="flex items-center justify-between p-4 border-b border-indigo-700/50"
+        >
+          <h1 class="text-xl font-bold flex items-center gap-2">
+            <span>💰</span> Jamal's Hub
+          </h1>
+          <button
+            id="closeSidebarBtn"
+            class="lg:hidden text-white/70 hover:text-white"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Navigation Menu (Matches your Final Structure doc) -->
+        <nav class="p-4 space-y-6 overflow-y-auto h-[calc(100%-80px)]">
+          <!-- Dashboard -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              📊 Dashboard
+            </h3>
+            <a
+              href="#"
+              data-page="dashboard-overview"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-chart-pie w-5"></i> Overview
+            </a>
+          </div>
+
+          <!-- Employee Management -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              👥 Employee
+            </h3>
+            <a
+              href="#"
+              data-page="employees"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-users w-5"></i> Employee List
+            </a>
+            <a
+              href="#"
+              data-page="employees"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-plus-circle w-4"></i> Add Employee
+            </a>
+            <a
+              href="#"
+              data-page="employees"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-money-bill-wave w-4"></i> Salary Management
+            </a>
+          </div>
+
+          <!-- Payroll System -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              💵 Payroll
+            </h3>
+            <a
+              href="#"
+              data-page="payroll"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-calculator w-5"></i> Process Payroll
+            </a>
+            <a
+              href="#"
+              data-page="payroll"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-history w-4"></i> Payroll History
+            </a>
+            <a
+              href="#"
+              data-page="payroll"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-hand-holding-usd w-4"></i> Pay Salary
+            </a>
+            <a
+              href="#"
+              data-page="payroll"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-chart-bar w-4"></i> Payroll Reports
+            </a>
+          </div>
+
+          <!-- Invoice System -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              🧾 Invoices
+            </h3>
+            <a
+              href="#"
+              data-page="invoices"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-file-invoice w-5"></i> Create Invoice
+            </a>
+            <a
+              href="#"
+              data-page="invoices"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-eye w-4"></i> View Invoices
+            </a>
+          </div>
+
+          <!-- Inventory -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              📦 Inventory
+            </h3>
+            <a
+              href="#"
+              data-page="inventory"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-box w-5"></i> Add Item
+            </a>
+            <a
+              href="#"
+              data-page="inventory"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-list w-4"></i> View Items
+            </a>
+          </div>
+
+          <!-- Financials -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              💰 Financials
+            </h3>
+            <a
+              href="#"
+              data-page="financials"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-book w-5"></i> Accounts
+            </a>
+            <div class="ml-5 space-y-1 mt-1">
+              <a
+                href="#"
+                data-page="financials"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-arrow-right w-4"></i> Cash Receipt
+              </a>
+              <a
+                href="#"
+                data-page="financials"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-arrow-left w-4"></i> Cash Payment
+              </a>
+              <a
+                href="#"
+                data-page="financials"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-arrow-right w-4"></i> Bank Receipt
+              </a>
+              <a
+                href="#"
+                data-page="financials"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-arrow-left w-4"></i> Bank Payment
+              </a>
+              <a
+                href="#"
+                data-page="financials"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-journal-whills w-4"></i> Journal Voucher
+              </a>
+              <a
+                href="#"
+                data-page="financials"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-balance-scale w-4"></i> Bank Reconciliation
+              </a>
+            </div>
+          </div>
+
+          <!-- Financial Reports -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              📈 Reports
+            </h3>
+            <a
+              href="#"
+              data-page="reports"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-chart-line w-5"></i> Accounting Reports
+            </a>
+            <div class="ml-5 space-y-1 mt-1">
+              <a
+                href="#"
+                data-page="reports"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-book-open w-4"></i> General Ledger
+              </a>
+              <a
+                href="#"
+                data-page="reports"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-balance-scale w-4"></i> Trial Balance
+              </a>
+              <a
+                href="#"
+                data-page="reports"
+                class="nav-link flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10 transition text-sm"
+              >
+                <i class="fas fa-file-invoice-dollar w-4"></i> Profit & Loss
+              </a>
+            </div>
+          </div>
+
+          <!-- Master Data -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              🗂️ Master Data
+            </h3>
+            <a
+              href="#"
+              data-page="chart-of-accounts"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-sitemap w-5"></i> Chart of Accounts
+            </a>
+          </div>
+
+          <!-- Admin Panel (only visible to admin) -->
+          <div id="adminSection" class="hidden">
+            <h3
+              class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-2"
+            >
+              ⚙️ Admin
+            </h3>
+            <a
+              href="#"
+              data-page="admin"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition"
+            >
+              <i class="fas fa-user-plus w-5"></i> Create User
+            </a>
+            <a
+              href="#"
+              data-page="admin"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-users-cog w-4"></i> View Users
+            </a>
+            <a
+              href="#"
+              data-page="admin"
+              class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition pl-9 text-sm"
+            >
+              <i class="fas fa-key w-4"></i> Change Password
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Navbar -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+          <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-3">
+              <button
+                id="openSidebarBtn"
+                class="lg:hidden text-gray-600 hover:text-gray-900"
+              >
+                <i class="fas fa-bars text-xl"></i>
+              </button>
+              <h2 id="pageTitle" class="text-xl font-semibold text-gray-800">
+                Dashboard Overview
+              </h2>
+            </div>
+            <div class="flex items-center gap-4">
+              <!-- User Role Badge -->
+              <span
+                id="userRoleBadge"
+                class="px-3 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800"
+                >Employee</span
+              >
+              <!-- User Menu -->
+              <div class="relative">
+                <button
+                  id="userMenuBtn"
+                  class="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+                >
+                  <span id="userEmailDisplay" class="text-sm hidden sm:inline"
+                    >user@example.com</span
+                  >
+                  <i class="fas fa-user-circle text-2xl"></i>
+                </button>
+                <div
+                  id="userDropdown"
+                  class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-200 z-50"
+                >
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >Profile</a
+                  >
+                  <a
+                    href="#"
+                    id="logoutBtn"
+                    class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >Logout</a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Page Content (iframe or dynamic container) -->
+        <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+          <iframe
+            id="contentFrame"
+            src="pages/dashboard-overview.html"
+            class="w-full h-full border-0 rounded-lg bg-white shadow-sm"
+          ></iframe>
+        </main>
+      </div>
+    </div>
+
+    <!-- Backdrop for mobile sidebar -->
+    <div
+      id="sidebarBackdrop"
+      class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"
+    ></div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
