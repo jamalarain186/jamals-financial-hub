@@ -61,7 +61,7 @@
                 id="outstandingInvoices"
                 class="text-3xl font-bold text-gray-800"
               >
-                ₹0
+                Rs0
               </p>
             </div>
           </div>
@@ -76,7 +76,7 @@
             <div class="ml-4">
               <p class="text-sm font-medium text-gray-500">Bank Balance</p>
               <p id="bankBalance" class="text-3xl font-bold text-gray-800">
-                ₹0
+                Rs0
               </p>
             </div>
           </div>
@@ -180,7 +180,7 @@
                                 <span class="font-medium text-indigo-600">${v.voucherCode}</span>
                                 <span class="text-sm text-gray-500 ml-2">${v.date}</span>
                             </div>
-                            <span class="font-medium">₹${v.amount.toLocaleString()}</span>
+                            <span class="font-medium">Rs${v.amount.toLocaleString()}</span>
                         `;
               recentVouchersDiv.appendChild(item);
             });
@@ -208,7 +208,7 @@
                                 <span class="font-medium">${e.name}</span>
                                 <span class="text-sm text-gray-500 ml-2">${e.position || ""}</span>
                             </div>
-                            <span class="text-sm text-gray-600">₹${(e.salary || 0).toLocaleString()}</span>
+                            <span class="text-sm text-gray-600">Rs${(e.salary || 0).toLocaleString()}</span>
                         `;
               recentEmployeesDiv.appendChild(item);
             });
